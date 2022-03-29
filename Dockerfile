@@ -1,0 +1,27 @@
+FROM ubuntu:20.04
+
+LABEL maintainer="Jaeyoung Chun (chunj@mskcc.org)" \
+      version.bcftools="1.15" \
+      source.bcftools="https://github.com/bcftools/bcftools/releases/tag/1.15"
+
+ENV BCFTOOLS_VERSION 1.15
+
+# update package manager & build essentials
+RUN apt-get update \
+    && apt-get install --yes build-essential
+
+# install dependency required by bcftools
+RUN apt-get install --yes wget libncurses5-dev zlib1g-dev libbz2-dev liblzma-dev
+
+# install bcftools
+RUN cd /tmp \
+    && wget https://github.com/samtools/bcftools/releases/download/${BCFTOOLS_VERSION}/bcftools-${BCFTOOLS_VERSION}.tar.bz2 \
+    && tar xvjf bcftools-${BCFTOOLS_VERSION}.tar.bz2 \
+    && cd bcftools-${BCFTOOLS_VERSION} \
+    && ./configure --prefix=/usr/local \
+    && make \
+    && make install \
+    && cd / && rm -rf /tmp/bcftools-${BCFTOOLS_VERSION}
+
+ENTRYPOINT ["/usr/local/bin/bcftools"]
+CMD ["--help"]
